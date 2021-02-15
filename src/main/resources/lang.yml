@@ -1,0 +1,5 @@
+noPerms: "&cYou don't have permission!"
+notPlayer: "&cYou cannot do this from console!"
+usage: "&cUsage: /customcrafting <create/edit> <name>"
+invalid: "&cThis recipe does not exist!"
+exists: "&cThis recipe already exists!"

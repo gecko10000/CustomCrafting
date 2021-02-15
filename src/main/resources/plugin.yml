@@ -1,0 +1,13 @@
+name: CustomCrafting
+main: io.github.levtey.CustomCrafting.CustomCrafting
+version: 0.0.1
+author: levtey
+api-version: 1.16
+depend: [HeadDatabase, CMI]
+commands:
+  customcrafting:
+    aliases: [cc]
+    usage: /<command> help
+permissions:
+  customcrafting.admin:
+    default: op
