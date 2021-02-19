@@ -1,4 +1,4 @@
-inventory:
+recipeInv:
   name: "{#orange}Create Custom Recipe"
   filler:
     material: BLACK_STAINED_GLASS_PANE
@@ -9,6 +9,14 @@ inventory:
   shapeless:
     material: hdb:1988
     name: "&3Shapeless"
+  confirm:
+    material: LIME_STAINED_GLASS_PANE
+    name: "{#green}Confirm"
+choiceInv:
+  name: "{#green}Add Items to Choice"
+  filler:
+    material: BLACK_STAINED_GLASS_PANE
+    name: "&r"
   exact:
     material: TRIPWIRE_HOOK
     name: "{#green}Exact Match"

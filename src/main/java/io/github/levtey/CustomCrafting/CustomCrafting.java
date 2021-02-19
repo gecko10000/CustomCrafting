@@ -2,9 +2,18 @@ package io.github.levtey.CustomCrafting;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -12,6 +21,12 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.RecipeChoice.ExactChoice;
+import org.bukkit.inventory.RecipeChoice.MaterialChoice;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -28,6 +43,8 @@ public class CustomCrafting extends JavaPlugin {
 	private FileConfiguration recipeConfig, lang;
 	@Getter
 	private HeadDatabaseAPI hdb;
+	@Getter
+	private Map<NamespacedKey, RecipeGUI> savedEditors = new HashMap<>();
 
 	public void onEnable() {
 		this.saveDefaultConfig();
@@ -35,7 +52,12 @@ public class CustomCrafting extends JavaPlugin {
 		this.reloadLang();
 		new Listeners(this);
 		new CustomCraftingCommand(this);
+		reloadRecipes();
 		setHdb();
+	}
+	
+	public void onDisable() {
+		removeCustomRecipes();
 	}
 	
 	public void setHdb() {
@@ -87,6 +109,101 @@ public class CustomCrafting extends JavaPlugin {
 		}
 		item.setItemMeta(meta);
 		return item;
+	}
+	
+	public void reloadRecipes() {
+		removeCustomRecipes();
+		for (String key : recipeConfig.getKeys(false)) {
+			Bukkit.addRecipe(loadRecipe(key));
+		}
+	}
+	
+	public void removeCustomRecipes() {
+		Iterator<Recipe> recipeIterator = Bukkit.recipeIterator();
+		while (recipeIterator.hasNext()) {
+			Recipe recipe = recipeIterator.next();
+			if (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().getNamespace().equals(this.getName().toLowerCase())) {
+				Bukkit.removeRecipe(((ShapedRecipe) recipe).getKey());
+			} else if (recipe instanceof ShapelessRecipe && ((ShapelessRecipe) recipe).getKey().getNamespace().equals(this.getName().toLowerCase())) {
+				Bukkit.removeRecipe(((ShapelessRecipe) recipe).getKey());
+			}
+		}
+	}
+	
+	public void saveRecipe(Recipe r) {
+		String key = null;
+		if (r instanceof ShapedRecipe) {
+			ShapedRecipe recipe = (ShapedRecipe) r;
+			key = recipe.getKey().getKey();
+			recipeConfig.set(key + ".shaped", true);
+			Map<Character, RecipeChoice> choiceMap = recipe.getChoiceMap();
+			for (int i = 0; i < 9; i++) {
+				RecipeChoice choice = choiceMap.get((char) (i + '0'));
+				saveChoice(key + ".choices." + i, choice);
+			}
+		} else {
+			ShapelessRecipe recipe = (ShapelessRecipe) r;
+			key = recipe.getKey().getKey();
+			recipeConfig.set(key + ".shaped", false);
+			List<RecipeChoice> choiceList = recipe.getChoiceList();
+			for (int i = 0; i < choiceList.size(); i++) {
+				RecipeChoice choice = choiceList.get(i);
+				saveChoice(key + ".choices." + i, choice);
+			}
+		}
+		recipeConfig.set(key + ".result", r.getResult());
+		try {
+			recipeConfig.save(recipeFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public Recipe loadRecipe(String key) {
+		NamespacedKey recipeKey = new NamespacedKey(this, key);
+		ItemStack result = recipeConfig.getItemStack(key + ".result");
+		if (recipeConfig.getBoolean(key + ".shaped")) {
+			ShapedRecipe recipe = new ShapedRecipe(recipeKey, result);
+			recipe.shape("012", "345", "678");
+			for (int i = 0; i < 9; i++) {
+				RecipeChoice choice = loadChoice(key + ".choices." + i);
+				if (choice == null) continue;
+				recipe.setIngredient((char)(i + '0'), choice);
+			}
+			return recipe;
+		} else {
+			ShapelessRecipe recipe = new ShapelessRecipe(recipeKey, result);
+			for (String choiceKey : recipeConfig.getConfigurationSection(key + ".choices").getKeys(false)) {
+				RecipeChoice choice = loadChoice(key + ".choices." + choiceKey);
+				if (choice == null) continue;
+				recipe.addIngredient(choice);
+			}
+			return recipe;
+		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	public void saveChoice(String path, RecipeChoice choice) {
+		if (choice == null) return;
+		if (choice instanceof ExactChoice) {
+			recipeConfig.set(path + ".exact", true);
+			recipeConfig.set(path + ".items", ((ExactChoice) choice).getChoices());
+		} else {
+			recipeConfig.set(path + ".exact", false);
+			recipeConfig.set(path + ".items", ((MaterialChoice) choice).getChoices().stream().map(Material::toString).collect(Collectors.toList()));
+		}
+	}
+	
+	@SuppressWarnings({ "deprecation", "unchecked" })
+	public RecipeChoice loadChoice(String path) {
+		if (recipeConfig.getList(path + ".items") == null) return null;
+		if (recipeConfig.getBoolean(path + ".exact")) {
+			List<ItemStack> possibleStacks = (List<ItemStack>) recipeConfig.getList(path + ".items");
+			return new ExactChoice(possibleStacks);
+		} else {
+			List<Material> possibleMaterials = recipeConfig.getStringList(path + ".items").stream().map(Material::getMaterial).collect(Collectors.toList());
+			return new MaterialChoice(possibleMaterials);
+		}
 	}
 	
 	public boolean sendMessage(CommandSender sender, String path) {

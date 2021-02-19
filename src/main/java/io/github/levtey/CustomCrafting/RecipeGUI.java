@@ -1,7 +1,10 @@
 package io.github.levtey.CustomCrafting;
 
+import java.util.Map;
+
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -15,92 +18,55 @@ import lombok.Getter;
 
 public class RecipeGUI implements InventoryHolder {
 	
+	public static boolean ignoreClose = true;
 	private CustomCrafting plugin;
 	private Inventory inventory;
 	@Getter
-	private boolean shaped = true;
-	private boolean[] exactChoices = new boolean[9];
+	private boolean shaped = false;
+	@Getter
 	private NamespacedKey key;
 	
-	private static final int size = 54;
+	private static final int size = 27;
 	private final ItemStack fillerItem;
 	private final ItemStack shapedItem;
 	private final ItemStack shapelessItem;
-	private final ItemStack exactItem;
-	private final ItemStack materialItem;
 	private final ItemStack confirmItem;
+	private final ItemStack emptyItem;
+	@Getter
+	private RecipeChoice[] ingredients = new RecipeChoice[9];
 	private static final int[] recipeSlots = new int[] {1, 2, 3, 10, 11, 12, 19, 20, 21};
-	public static final int shapedSlot = 29;
-	public static final int resultSlot = 38;
-	public static final int confirmSlot = 42;
-	private static final int[] choiceSlots = new int[] {5, 6, 7, 14, 15, 16, 23, 24, 25};
+	public static final int shapedSlot = 13;
+	public static final int resultSlot = 14;
+	public static final int confirmSlot = 17;
 	
 	public RecipeGUI(CustomCrafting plugin, NamespacedKey key) {
 		this.plugin = plugin;
 		this.key = key;
-		fillerItem = plugin.itemFromConfig("inventory.filler");
-		shapedItem = plugin.itemFromConfig("inventory.shaped");
-		shapelessItem = plugin.itemFromConfig("inventory.shapeless");
-		exactItem = plugin.itemFromConfig("inventory.exact");
-		materialItem = plugin.itemFromConfig("inventory.material");
-		confirmItem = plugin.itemFromConfig("inventory.confirm");
+		fillerItem = plugin.itemFromConfig("recipeInv.filler");
+		shapedItem = plugin.itemFromConfig("recipeInv.shaped");
+		shapelessItem = plugin.itemFromConfig("recipeInv.shapeless");
+		confirmItem = plugin.itemFromConfig("recipeInv.confirm");
+		emptyItem = plugin.itemFromConfig("recipeInv.empty");
 		createInventory();
 	}
 	
 	private void createInventory() {
-		inventory = Bukkit.createInventory(this, size, plugin.makeReadable(plugin.getConfig().getString("inventory.name")));
+		inventory = Bukkit.createInventory(this, size, plugin.makeReadable(plugin.getConfig().getString("recipeInv.name")));
 		for (int i = 0; i < size; i++) {
 			if (!isFillerSlot(i)) continue;
 			inventory.setItem(i, fillerItem);
 		}
-		
-		updateShaped();
-		for (int i = 0; i < exactChoices.length; i++) {
-			updateChoice(i);
+		for (int i = 0; i < ingredients.length; i++) {
+			setChoice(i, ingredients[i]);
 		}
+		updateShaped();
 		inventory.setItem(confirmSlot, confirmItem);
 	}
 	
 	@SuppressWarnings("deprecation")
-	public Recipe createRecipe() {
-		ItemStack result = inventory.getItem(resultSlot);
-		if (result == null) return null;
-		if (shaped) {
-			ShapedRecipe recipe = new ShapedRecipe(key, result);
-			recipe.shape("012", "345", "678");
-			for (int i = 0; i < 9; i++) {
-				ItemStack recipeItem = inventory.getItem(recipeSlots[i]);
-				if (recipeItem == null) continue;
-				char digitChar = (char) (i + 48);
-				recipe.setIngredient(digitChar, exactChoices[i] ? new RecipeChoice.ExactChoice(recipeItem) : new RecipeChoice.MaterialChoice(recipeItem.getType()));
-			}
-			return recipe;
-		} else {
-			ShapelessRecipe recipe = new ShapelessRecipe(key, result);
-			for (int i = 0; i < 9; i++) {
-				ItemStack recipeItem = inventory.getItem(recipeSlots[i]);
-				recipe.addIngredient(exactChoices[i] ? new RecipeChoice.ExactChoice(recipeItem) : new RecipeChoice.MaterialChoice(recipeItem.getType()));
-			}
-			return recipe;
-		}
-	}
-	
-	public int choiceIndexOfSlot(int slot) {
-		for (int i = 0; i < choiceSlots.length; i++) {
-			if (slot == choiceSlots[i]) return i;
-		}
-		return -1;
-	}
-	
-	public boolean toggleChoice(int slot) {
-		slot = Math.min(slot, 8);
-		exactChoices[slot] = !exactChoices[slot];
-		updateChoice(slot);
-		return exactChoices[slot];
-	}
-	
-	public void updateChoice(int slot) {
-		inventory.setItem(choiceSlots[slot], exactChoices[slot] ? exactItem : materialItem);
+	public void setChoice(int index, RecipeChoice choice) {
+		ingredients[index] = choice;
+		inventory.setItem(recipeSlots[index], choice == null ? emptyItem : choice.getItemStack());
 	}
 	
 	public boolean toggleShaped() {
@@ -114,21 +80,40 @@ public class RecipeGUI implements InventoryHolder {
 	}
 	
 	public boolean isFillerSlot(int slot) {
-		return !isRecipeSlot(slot) && shapedSlot != slot && resultSlot != slot && confirmSlot != slot && !isChoiceSlot(slot);
+		return recipeIndex(slot) == -1 && shapedSlot != slot && resultSlot != slot && confirmSlot != slot;
 	}
 	
-	public boolean isRecipeSlot(int slot) {
+	public int recipeIndex(int slot) {
 		for (int i = 0; i < recipeSlots.length; i++) {
-			if (slot == recipeSlots[i]) return true;
+			if (slot == recipeSlots[i]) return i;
 		}
-		return false;
+		return -1;
 	}
 	
-	public boolean isChoiceSlot(int slot) {
-		for (int i = 0; i < choiceSlots.length; i++) {
-			if (slot == choiceSlots[i]) return true;
+	public void finish() {
+		if (shaped) {
+			ShapedRecipe recipe = new ShapedRecipe(key, inventory.getItem(resultSlot));
+			recipe.shape("012", "345", "678");
+			for (int i = 0; i < 9; i++) {
+				recipe.setIngredient((char) (i + '0'), ingredients[i]);
+			}
+			plugin.saveRecipe(recipe);
+			Bukkit.removeRecipe(key);
+			Bukkit.addRecipe(recipe);
+		} else {
+			ShapelessRecipe recipe = new ShapelessRecipe(key, inventory.getItem(resultSlot));
+			for (RecipeChoice choice : ingredients) {
+				if (choice == null) continue;
+				recipe.addIngredient(choice);
+			}
+			plugin.saveRecipe(recipe);
+			Bukkit.removeRecipe(key);
+			Bukkit.addRecipe(recipe);
 		}
-		return false;
+	}
+	
+	public void open(HumanEntity ent) {
+		ent.openInventory(inventory);
 	}
 
 	@Override

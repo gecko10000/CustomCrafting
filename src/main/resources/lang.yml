@@ -1,5 +1,7 @@
 noPerms: "&cYou don't have permission!"
 notPlayer: "&cYou cannot do this from console!"
 usage: "&cUsage: /customcrafting <create/edit> <name>"
-invalid: "&cThis recipe does not exist!"
+invalid: "&cInvalid recipe!"
 exists: "&cThis recipe already exists!"
+reload: "&aConfigs reloaded!"
+needResult: "&cThe recipe needs a result!"
