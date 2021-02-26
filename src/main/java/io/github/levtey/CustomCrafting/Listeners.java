@@ -88,6 +88,9 @@ public class Listeners implements Listener {
 		}
 		if (slot == ChoiceGUI.confirmSlot) {
 			evt.setCancelled(true);
+			if (plugin.getConfig().getBoolean("choiceGUI.returnItems")) {
+				evt.getWhoClicked().getInventory().addItem(choiceGUI.getItems().toArray(new ItemStack[0]));
+			}
 			RecipeGUI recipeGUI = choiceGUI.getRecipeGUI();
 			recipeGUI.setChoice(choiceGUI.recipeSlot, choiceGUI.getChoice());
 			recipeGUI.open(evt.getWhoClicked());

@@ -37,6 +37,7 @@ public class CustomCraftingCommand implements CommandExecutor {
 			plugin.reloadRecipes();
 			return plugin.sendMessage(sender, "reload");
 		}
+		if (args.length == 1) return plugin.sendMessage(sender, "usage");
 		Recipe recipe = Bukkit.getRecipe(new NamespacedKey(plugin, args[1]));
 		switch (args[0].toLowerCase()) {
 		case "create":
@@ -49,6 +50,8 @@ public class CustomCraftingCommand implements CommandExecutor {
 			}
 			new RecipeGUI(plugin, new NamespacedKey(plugin, args[1])).open((Player) sender);
 			break;
+		default:
+			return plugin.sendMessage(sender, "usage");
 		//case "edit":
 			//if (recipe == null || (!(recipe instanceof ShapedRecipe) && !(recipe instanceof ShapelessRecipe))) return plugin.sendMessage(sender, "invalid");
 			//new RecipeGUI(plugin, new NamespacedKey(plugin, args[1]));
