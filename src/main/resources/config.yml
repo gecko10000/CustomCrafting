@@ -12,6 +12,9 @@ recipeInv:
   confirm:
     material: LIME_STAINED_GLASS_PANE
     name: "{#green}Confirm"
+  empty:
+    material: GRAY_STAINED_GLASS_PANE
+    name: "&aClick to add a choice"
 choiceInv:
   returnItems: true
   name: "{#green}Add Items to Choice"
