@@ -2,13 +2,10 @@ package io.github.levtey.CustomCrafting;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
@@ -19,6 +16,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -32,6 +30,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.Zrips.CMI.Containers.CMIChatColor;
 
+import io.github.levtey.CustomCrafting.crafting.CraftingRecipeGUI;
 import lombok.Getter;
 import me.arcaniax.hdb.api.HeadDatabaseAPI;
 
@@ -44,7 +43,7 @@ public class CustomCrafting extends JavaPlugin {
 	@Getter
 	private HeadDatabaseAPI hdb;
 	@Getter
-	private Map<NamespacedKey, RecipeGUI> savedEditors = new HashMap<>();
+	private Map<NamespacedKey, CraftingRecipeGUI> savedEditors = new HashMap<>();
 
 	public void onEnable() {
 		this.saveDefaultConfig();
@@ -126,6 +125,8 @@ public class CustomCrafting extends JavaPlugin {
 				Bukkit.removeRecipe(((ShapedRecipe) recipe).getKey());
 			} else if (recipe instanceof ShapelessRecipe && ((ShapelessRecipe) recipe).getKey().getNamespace().equals(this.getName().toLowerCase())) {
 				Bukkit.removeRecipe(((ShapelessRecipe) recipe).getKey());
+			} else if (recipe instanceof FurnaceRecipe && ((FurnaceRecipe) recipe).getKey().getNamespace().equals(this.getName().toLowerCase())) {
+				Bukkit.removeRecipe(((FurnaceRecipe) recipe).getKey());
 			}
 		}
 	}
@@ -141,7 +142,7 @@ public class CustomCrafting extends JavaPlugin {
 				RecipeChoice choice = choiceMap.get((char) (i + '0'));
 				saveChoice(key + ".choices." + i, choice);
 			}
-		} else {
+		} else if (r instanceof ShapelessRecipe) {
 			ShapelessRecipe recipe = (ShapelessRecipe) r;
 			key = recipe.getKey().getKey();
 			recipeConfig.set(key + ".shaped", false);
@@ -150,6 +151,12 @@ public class CustomCrafting extends JavaPlugin {
 				RecipeChoice choice = choiceList.get(i);
 				saveChoice(key + ".choices." + i, choice);
 			}
+		} else if (r instanceof FurnaceRecipe) {
+			FurnaceRecipe recipe = (FurnaceRecipe) r;
+			key = recipe.getKey().getKey();
+			saveChoice(key + ".ingredient", recipe.getInputChoice());
+			recipeConfig.set(key + ".experience", recipe.getExperience());
+			recipeConfig.set(key + ".cookingTime", recipe.getCookingTime());
 		}
 		recipeConfig.set(key + ".result", r.getResult());
 		try {
@@ -172,13 +179,19 @@ public class CustomCrafting extends JavaPlugin {
 			}
 			return recipe;
 		} else {
-			ShapelessRecipe recipe = new ShapelessRecipe(recipeKey, result);
-			for (String choiceKey : recipeConfig.getConfigurationSection(key + ".choices").getKeys(false)) {
-				RecipeChoice choice = loadChoice(key + ".choices." + choiceKey);
-				if (choice == null) continue;
-				recipe.addIngredient(choice);
+			int cookingTime = recipeConfig.getInt(key + ".cookingTime", -1);
+			if (cookingTime == -1) {
+				ShapelessRecipe recipe = new ShapelessRecipe(recipeKey, result);
+				for (String choiceKey : recipeConfig.getConfigurationSection(key + ".choices").getKeys(false)) {
+					RecipeChoice choice = loadChoice(key + ".choices." + choiceKey);
+					if (choice == null) continue;
+					recipe.addIngredient(choice);
+				}
+				return recipe;
+			} else {
+				FurnaceRecipe recipe = new FurnaceRecipe(recipeKey, result, loadChoice(key + ".ingredient"), (float) recipeConfig.getDouble(key + ".experience"), cookingTime);
+				return recipe;
 			}
-			return recipe;
 		}
 	}
 	

@@ -16,6 +16,8 @@ import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 
+import io.github.levtey.CustomCrafting.crafting.CraftingRecipeGUI;
+
 public class CustomCraftingCommand implements CommandExecutor {
 	
 	private CustomCrafting plugin;
@@ -39,16 +41,15 @@ public class CustomCraftingCommand implements CommandExecutor {
 		}
 		if (args.length == 1) return plugin.sendMessage(sender, "usage");
 		Recipe recipe = Bukkit.getRecipe(new NamespacedKey(plugin, args[1]));
+		if (recipe != null) return plugin.sendMessage(sender, "exists");
 		switch (args[0].toLowerCase()) {
-		case "create":
-			if (recipe != null) return plugin.sendMessage(sender, "exists");
-		case "edit":
+		case "crafting":
 			NamespacedKey recipeKey = new NamespacedKey(plugin, args[1]);
 			if (plugin.getSavedEditors().containsKey(recipeKey)) {
 				plugin.getSavedEditors().remove(recipeKey).open((Player) sender);
 				return true;
 			}
-			new RecipeGUI(plugin, new NamespacedKey(plugin, args[1])).open((Player) sender);
+			new CraftingRecipeGUI(plugin, new NamespacedKey(plugin, args[1])).open((Player) sender);
 			break;
 		default:
 			return plugin.sendMessage(sender, "usage");

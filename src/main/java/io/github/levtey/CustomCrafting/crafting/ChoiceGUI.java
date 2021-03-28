@@ -1,4 +1,4 @@
-package io.github.levtey.CustomCrafting;
+package io.github.levtey.CustomCrafting.crafting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +14,7 @@ import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.RecipeChoice.ExactChoice;
 import org.bukkit.inventory.RecipeChoice.MaterialChoice;
 
+import io.github.levtey.CustomCrafting.CustomCrafting;
 import lombok.Getter;
 
 public class ChoiceGUI implements InventoryHolder {
@@ -22,7 +23,7 @@ public class ChoiceGUI implements InventoryHolder {
 	private CustomCrafting plugin;
 	private Inventory inventory;
 	@Getter
-	private RecipeGUI recipeGUI;
+	private CraftingRecipeGUI recipeGUI;
 	public int recipeSlot;
 	private boolean exact = true;
 	
@@ -35,7 +36,7 @@ public class ChoiceGUI implements InventoryHolder {
 	private final ItemStack confirmItem;
 	
 	@SuppressWarnings("deprecation")
-	public ChoiceGUI(CustomCrafting plugin, RecipeGUI recipeGUI, int slot) {
+	public ChoiceGUI(CustomCrafting plugin, CraftingRecipeGUI recipeGUI, int slot) {
 		this.plugin = plugin;
 		this.recipeGUI = recipeGUI;
 		this.recipeSlot = slot;

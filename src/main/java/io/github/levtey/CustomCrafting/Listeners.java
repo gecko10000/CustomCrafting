@@ -9,9 +9,9 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
 
-import me.arcaniax.hdb.api.DatabaseLoadEvent;
+import io.github.levtey.CustomCrafting.crafting.ChoiceGUI;
+import io.github.levtey.CustomCrafting.crafting.CraftingRecipeGUI;
 
 public class Listeners implements Listener {
 
@@ -24,43 +24,43 @@ public class Listeners implements Listener {
 	
 	@EventHandler
 	public void onRecipeClick(InventoryClickEvent evt) {
-		if ((evt.getInventory().getHolder() instanceof RecipeGUI) && evt.getClick() == ClickType.DOUBLE_CLICK) {
+		if ((evt.getInventory().getHolder() instanceof CraftingRecipeGUI) && evt.getClick() == ClickType.DOUBLE_CLICK) {
 			evt.setCancelled(true);
 			return;
 		}
 		Inventory clickedInv = evt.getClickedInventory();
 		if (clickedInv == null) return;
 		InventoryHolder holder = clickedInv.getHolder();
-		if (!(holder instanceof RecipeGUI)) return;
-		RecipeGUI recipeGUI = (RecipeGUI) holder;
+		if (!(holder instanceof CraftingRecipeGUI)) return;
+		CraftingRecipeGUI recipeGUI = (CraftingRecipeGUI) holder;
 		int slot = evt.getSlot();
 		if (recipeGUI.isFillerSlot(slot)) {
 			evt.setCancelled(true);
 			return;
 		}
-		if (slot == RecipeGUI.shapedSlot) {
+		if (slot == CraftingRecipeGUI.shapedSlot) {
 			evt.setCancelled(true);
 			recipeGUI.toggleShaped();
 			return;
 		}
-		if (slot == RecipeGUI.confirmSlot) {
+		if (slot == CraftingRecipeGUI.confirmSlot) {
 			evt.setCancelled(true);
-			if (recipeGUI.getInventory().getItem(RecipeGUI.resultSlot) == null) {
+			if (recipeGUI.getInventory().getItem(CraftingRecipeGUI.resultSlot) == null) {
 				plugin.sendMessage(evt.getWhoClicked(), "needResult");
 				return;
 			}
 			recipeGUI.finish();
-			RecipeGUI.ignoreClose = true;
+			CraftingRecipeGUI.ignoreClose = true;
 			evt.getWhoClicked().closeInventory();
-			RecipeGUI.ignoreClose = false;
+			CraftingRecipeGUI.ignoreClose = false;
 		}
 		if (recipeGUI.recipeIndex(slot) != -1) {
 			evt.setCancelled(true);
 			ItemStack cursor = new ItemStack(evt.getCursor());
 			evt.getView().setCursor(null);
-			RecipeGUI.ignoreClose = true;
+			CraftingRecipeGUI.ignoreClose = true;
 			new ChoiceGUI(plugin, recipeGUI, recipeGUI.recipeIndex(slot)).open(evt.getWhoClicked()).getInventory().addItem(cursor);
-			RecipeGUI.ignoreClose = false;
+			CraftingRecipeGUI.ignoreClose = false;
 			return;
 		}
 	}
@@ -91,7 +91,7 @@ public class Listeners implements Listener {
 			if (plugin.getConfig().getBoolean("choiceGUI.returnItems")) {
 				evt.getWhoClicked().getInventory().addItem(choiceGUI.getItems().toArray(new ItemStack[0]));
 			}
-			RecipeGUI recipeGUI = choiceGUI.getRecipeGUI();
+			CraftingRecipeGUI recipeGUI = choiceGUI.getRecipeGUI();
 			recipeGUI.setChoice(choiceGUI.recipeSlot, choiceGUI.getChoice());
 			recipeGUI.open(evt.getWhoClicked());
 			return;
@@ -100,10 +100,10 @@ public class Listeners implements Listener {
 	
 	@EventHandler
 	public void on(InventoryCloseEvent evt) {
-		if (RecipeGUI.ignoreClose) return;
+		if (CraftingRecipeGUI.ignoreClose) return;
 		InventoryHolder holder = evt.getInventory().getHolder();
-		if (!(holder instanceof RecipeGUI)) return;
-		RecipeGUI recipeGUI = (RecipeGUI) holder;
+		if (!(holder instanceof CraftingRecipeGUI)) return;
+		CraftingRecipeGUI recipeGUI = (CraftingRecipeGUI) holder;
 		plugin.getSavedEditors().put(recipeGUI.getKey(), recipeGUI);
 	}
 	

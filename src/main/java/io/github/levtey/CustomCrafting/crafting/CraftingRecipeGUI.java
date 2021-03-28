@@ -1,4 +1,4 @@
-package io.github.levtey.CustomCrafting;
+package io.github.levtey.CustomCrafting.crafting;
 
 import java.util.Map;
 
@@ -14,9 +14,10 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import io.github.levtey.CustomCrafting.CustomCrafting;
 import lombok.Getter;
 
-public class RecipeGUI implements InventoryHolder {
+public class CraftingRecipeGUI implements InventoryHolder {
 	
 	public static boolean ignoreClose = true;
 	private CustomCrafting plugin;
@@ -26,7 +27,7 @@ public class RecipeGUI implements InventoryHolder {
 	@Getter
 	private NamespacedKey key;
 	
-	private static final int size = 27;
+	private static final int SIZE = 27;
 	private final ItemStack fillerItem;
 	private final ItemStack shapedItem;
 	private final ItemStack shapelessItem;
@@ -39,7 +40,7 @@ public class RecipeGUI implements InventoryHolder {
 	public static final int resultSlot = 14;
 	public static final int confirmSlot = 17;
 	
-	public RecipeGUI(CustomCrafting plugin, NamespacedKey key) {
+	public CraftingRecipeGUI(CustomCrafting plugin, NamespacedKey key) {
 		this.plugin = plugin;
 		this.key = key;
 		fillerItem = plugin.itemFromConfig("recipeInv.filler");
@@ -51,8 +52,8 @@ public class RecipeGUI implements InventoryHolder {
 	}
 	
 	private void createInventory() {
-		inventory = Bukkit.createInventory(this, size, plugin.makeReadable(plugin.getConfig().getString("recipeInv.name")));
-		for (int i = 0; i < size; i++) {
+		inventory = Bukkit.createInventory(this, SIZE, plugin.makeReadable(plugin.getConfig().getString("recipeInv.name")));
+		for (int i = 0; i < SIZE; i++) {
 			if (!isFillerSlot(i)) continue;
 			inventory.setItem(i, fillerItem);
 		}
