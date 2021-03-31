@@ -43,7 +43,8 @@ public class CustomCraftingCommand implements CommandExecutor {
 		Recipe recipe = Bukkit.getRecipe(new NamespacedKey(plugin, args[1]));
 		if (recipe != null) return plugin.sendMessage(sender, "exists");
 		switch (args[0].toLowerCase()) {
-		case "crafting":
+		case "create":
+		case "edit":
 			NamespacedKey recipeKey = new NamespacedKey(plugin, args[1]);
 			if (plugin.getSavedEditors().containsKey(recipeKey)) {
 				plugin.getSavedEditors().remove(recipeKey).open((Player) sender);
