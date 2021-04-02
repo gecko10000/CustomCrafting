@@ -121,11 +121,11 @@ public class CustomCrafting extends JavaPlugin {
 		Iterator<Recipe> recipeIterator = Bukkit.recipeIterator();
 		while (recipeIterator.hasNext()) {
 			Recipe recipe = recipeIterator.next();
-			if (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().getNamespace().equals(this.getName().toLowerCase())) {
+			if (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().getNamespace().equalsIgnoreCase(this.getName())) {
 				Bukkit.removeRecipe(((ShapedRecipe) recipe).getKey());
-			} else if (recipe instanceof ShapelessRecipe && ((ShapelessRecipe) recipe).getKey().getNamespace().equals(this.getName().toLowerCase())) {
+			} else if (recipe instanceof ShapelessRecipe && ((ShapelessRecipe) recipe).getKey().getNamespace().equalsIgnoreCase(this.getName())) {
 				Bukkit.removeRecipe(((ShapelessRecipe) recipe).getKey());
-			} else if (recipe instanceof FurnaceRecipe && ((FurnaceRecipe) recipe).getKey().getNamespace().equals(this.getName().toLowerCase())) {
+			} else if (recipe instanceof FurnaceRecipe && ((FurnaceRecipe) recipe).getKey().getNamespace().equalsIgnoreCase(this.getName())) {
 				Bukkit.removeRecipe(((FurnaceRecipe) recipe).getKey());
 			}
 		}

@@ -1,14 +1,19 @@
 package io.github.levtey.CustomCrafting;
 
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
 
 import io.github.levtey.CustomCrafting.crafting.ChoiceGUI;
 import io.github.levtey.CustomCrafting.crafting.CraftingRecipeGUI;
@@ -105,6 +110,27 @@ public class Listeners implements Listener {
 		if (!(holder instanceof CraftingRecipeGUI)) return;
 		CraftingRecipeGUI recipeGUI = (CraftingRecipeGUI) holder;
 		plugin.getSavedEditors().put(recipeGUI.getKey(), recipeGUI);
+	}
+	
+	@EventHandler
+	public void on(CraftItemEvent evt) {
+		Recipe recipe = evt.getRecipe();
+		NamespacedKey key = null;
+		if (recipe instanceof ShapedRecipe) {
+			key = ((ShapedRecipe) recipe).getKey();
+		} else if (recipe instanceof ShapelessRecipe) {
+			key = ((ShapelessRecipe) recipe).getKey();
+		}
+		if (key == null) return;
+		if (!key.getNamespace().equalsIgnoreCase(plugin.getName())) {
+			return;
+		} else {
+			if (plugin.getRecipeConfig().getBoolean(key.getKey() + ".restricted")
+					&& !evt.getWhoClicked().hasPermission("customcrafting.craft." + key.getKey())) {
+				evt.setCancelled(true);
+				evt.getWhoClicked().sendMessage(plugin.makeReadable(plugin.getLang().getString("noCraftPerms")));
+			}
+		}
 	}
 	
 }
