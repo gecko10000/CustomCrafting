@@ -32,7 +32,7 @@
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
-			<version>1.16.4-R0.1-SNAPSHOT</version><!--change this value depending 
+			<version>1.17-R0.1-SNAPSHOT</version><!--change this value depending 
 				on the version -->
 			<type>jar</type>
 			<scope>provided</scope>
@@ -40,7 +40,7 @@
 		<dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.12</version>
+            <version>1.18.20</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -52,9 +52,9 @@
         <dependency>
   			<groupId>com.Zrips</groupId>
   			<artifactId>CMI</artifactId>
-  			<version>8.7.11.3</version>
+  			<version>1.0.2.3</version>
   			<scope>system</scope>
-  			<systemPath>${basedir}/lib/CMI8.7.11.3.jar</systemPath>
+  			<systemPath>${basedir}/lib/CMILib1.0.2.3.jar</systemPath>
         </dependency>
 	</dependencies>
 </project>

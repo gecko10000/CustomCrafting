@@ -28,11 +28,10 @@ import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.Zrips.CMI.Containers.CMIChatColor;
-
 import io.github.levtey.CustomCrafting.crafting.CraftingRecipeGUI;
 import lombok.Getter;
 import me.arcaniax.hdb.api.HeadDatabaseAPI;
+import net.Zrips.CMILib.Colors.CMIChatColor;
 
 public class CustomCrafting extends JavaPlugin {
 	
